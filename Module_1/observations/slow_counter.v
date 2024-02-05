@@ -5,17 +5,23 @@ module slow_counter (
     input slowena,
     input reset,
     output [3:0] q);
-    reg [3:0] nq;
-    always @(posedge clk) begin
-        if (reset) nq<=4'h0;
-        else begin
-            if (slowena) begin
-                if (nq==4'h9)
-                    nq<=4'd0;
-                else nq<=nq+4'h1;
-            end
-            else nq<=nq;
-        end
+  reg [3:0] nq;
+  always @(posedge clk)
+  begin
+    if (reset)
+      nq<=4'h0;
+    else
+    begin
+      if (slowena)
+      begin
+        if (nq==4'h9)
+          nq<=4'd0;
+        else
+          nq<=nq+4'h1;
+      end
+      else
+        nq<=nq;
     end
-    assign q=nq;
+  end
+  assign q=nq;
 endmodule
