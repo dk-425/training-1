@@ -25,3 +25,28 @@ module slow_counter (
   end
   assign q=nq;
 endmodule
+
+/*
+module top_module (
+    input clk,
+    input slowena,
+    input reset,
+    output [3:0] q
+);
+    reg [3:0] nq;
+    always @(posedge clk) begin
+        case ({reset, slowena})
+            default: nq <= 4'b0000; 
+            2'b01: begin 
+                if (nq == 4'b1001) 
+                    nq <= 4'b0000; 
+                else
+                    nq <= nq + 4'd1; 
+            end
+            2'b00: nq <= nq; 
+        endcase
+    end
+assign q=nq;
+endmodule
+
+*/

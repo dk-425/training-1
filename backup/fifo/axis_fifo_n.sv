@@ -200,7 +200,7 @@ module axis_fifo #(
   always@(posedge clk) begin
     if(enb1 || enb2) begin
       m_tvalid <= 1;
-      if(write_idx == 2049) begin
+      if(write_idx == 2049 || write_idx == 4098) begin
         m_tvalid <= 'd0;
       end
     end

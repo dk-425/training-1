@@ -8,9 +8,9 @@ module tb_axi_reg;
   //Ports
   reg  clk;
   reg  rst;
-  reg [DW-1   :0] s_tdata;
-  reg  s_tvalid;
-  reg  s_tlast;
+  reg [DW-1   :0] s_tdata=0;
+  reg  s_tvalid=0;
+  reg  s_tlast=0;
   wire  s_tready;
   wire [DW-1   :0] m_tdata;
   wire  m_tvalid;
@@ -35,58 +35,81 @@ module tb_axi_reg;
 
   always #5  clk = ~ clk ;
 
-  integer i;
+  integer i=0;
   
   initial
   begin
-    clk=1;
+ 
+    clk=0;
     rst=1;
-    #11
-    m_tready=1;
+    m_tready=0;
     s_tlast=0;
-    #10
-     reset;
-    // fork begin
-    s_tvalid=1;
-    stimuli(9);
-    //end
-    //join
-    #10
-    s_tvalid=0;
-    stimuli(4);
-    #10
-     reset;
-    s_tvalid=1;
-    stimuli(3);
-    #10
-     reset;
-    s_tvalid=1;
-    stimuli(6);
-    #10
-     s_tlast=1;
-     s_tvalid=1;
-     stimuli(5);
-    #10
+    reset;
+    
+       fork
+            begin
+                axis_write(10);
+            end
+
+            begin
+                axis_read(10);
+            end
+        join
+        #30
+        fork 
+            begin
+                 axis_write(10);
+            end     
+            begin
+                 axis_read(10);
+            end 
+        join
+        #50
      $stop();
   end
 
   task automatic reset;
     begin
+    repeat (3) @(posedge clk);
       rst = ~rst;
     end
   endtask
 
-  task automatic stimuli(input [5:0] n);
-    begin
-      for (i=0;i<n;i=i+1)
-      begin
-      #10;
-        s_tdata=$urandom;
-        //$display("%d\n",s_tdata);
-      end
-
-    end
-  endtask
   
-
+  task automatic axis_write;
+     input integer k;
+        begin: write
+        repeat (k) begin
+            @(posedge clk); 
+                if (!s_tready) begin 
+                 s_tvalid <= 0;
+                 s_tlast<=0;
+                 s_tdata<=s_tdata;
+                end
+                else begin
+                s_tvalid <= 1;
+                s_tdata <= s_tdata+2;
+                s_tlast <=0;
+                end
+               
+            end
+            s_tlast <=1;
+            @(posedge clk);
+            s_tvalid <=0;
+            s_tlast <=0;
+end
+    endtask
+  
+ task automatic axis_read;
+ input integer p;
+        begin
+    
+            repeat (p) @(posedge clk) begin
+               m_tready <= 1; 
+            end
+            @(posedge clk);
+            m_tready <= 0;
+        end
+    endtask
+    
 endmodule
