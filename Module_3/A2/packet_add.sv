@@ -1,9 +1,9 @@
 `timescale 1ns / 1ps
 
 module axis_fifo #(
-    parameter AW = 12,
-    parameter DW = 16,
-    parameter DD = 2048)(
+    parameter AW = 10,
+    parameter DW = 8,
+    parameter DD = 512)(
 
       input                  clk,
       input                  rst,
@@ -12,6 +12,8 @@ module axis_fifo #(
       input                  s_tvalid,
       input                  s_tlast,
       output                 s_tready,
+
+      input [DW+DW -1:  0]   packet_config,
 
       output   [DW-1   :0]   m_tdata,
       output                 m_tvalid,
@@ -23,8 +25,8 @@ module axis_fifo #(
 
   logic [DW :0] s_tdata_i;
   logic [DW :0] m_tdata_i;
- // logic [AW:0] read_idx, write_idx; // debugging purposes
-
+  logic [AW:0] read_idx, write_idx;
+  logic [DW-1:0] len,k;
   //(*preserve*) logic wea, enb;
 
   logic s_tready_i;
@@ -53,14 +55,14 @@ module axis_fifo #(
       s_tready_i <=1;
   end
 
-//  always @(posedge clk)
-//  begin
-//    if (rst)
-//    begin
-//      read_idx<=0;
-//      write_idx<=0;
-//    end
-//    end
+  always @(posedge clk)
+  begin
+    if (rst)
+    begin
+      read_idx<=0;
+      write_idx<=0;
+    end
+    end
 
 
   assign s_tready= s_tready_i;
@@ -69,7 +71,7 @@ module axis_fifo #(
   assign enb = (m_tready)?1:0;
   assign s_tdata_i = wea?{s_tlast,s_tdata}:0;
   assign {m_tlast,m_tdata} = enb?m_tdata_i:0;
-
+  assign {len,k} = packet_config;
  
 
 endmodule

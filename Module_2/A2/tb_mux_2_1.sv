@@ -5,8 +5,8 @@ module mux_2_1_tb;
   localparam  DW = 8;
 
   //Ports
-  reg  clk;
-  reg  rst;
+  reg  clk=0;
+  reg  rst=1;
   reg  sel;
   reg [DW-1   :0] s1_tdata=0;
   reg  s1_tvalid=0;
@@ -19,7 +19,7 @@ module mux_2_1_tb;
   wire [DW-1   :0] m_tdata;
   wire  m_tvalid;
   wire  m_tlast;
-  reg  m_tready;
+  reg  m_tready=0;
 
   mux_2_1 # (
     .DW(DW)
@@ -49,11 +49,6 @@ integer i=0;
   initial
   begin
  
-    clk=0;
-    rst=1;
-    m_tready=0;
-    s1_tlast=0;
-    s2_tlast=0;
     reset;
     
        fork
@@ -62,19 +57,19 @@ integer i=0;
             end
 
             begin
-                axis_read(10);
+                axis_read(11);
             end
         join
-        #30
+        
         fork 
             begin
                  axis_write(20);
             end     
             begin
-                 axis_read(20);
+                 axis_read(22);
             end 
         join
-        #50
+
      $stop();
   end
 
@@ -113,8 +108,8 @@ integer i=0;
                 end
                
             end
-            s1_tlast <=1;
-            s2_tlast <=1;
+            s1_tlast <=sel?1:0;
+            s2_tlast <=~sel?1:0;
             @(posedge clk);
             s1_tvalid <=0;
             s1_tlast <=0;
@@ -138,7 +133,7 @@ initial begin
     sel=0;
     #200
     sel=1;
-    #200
+    #100
     sel=0;
     #50
     sel=1;

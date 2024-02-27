@@ -52,19 +52,19 @@ module tb_axi_reg;
             end
 
             begin
-                axis_read(10);
+                axis_read(12);
             end
         join
-        #30
+        
         fork 
             begin
                  axis_write(10);
             end     
             begin
-                 axis_read(10);
+                 axis_read(11);
             end 
         join
-        #50
+       @(posedge clk)
      $stop();
   end
 
@@ -78,7 +78,7 @@ module tb_axi_reg;
   
   task automatic axis_write;
      input integer k;
-        begin: write
+        begin
         repeat (k) begin
             @(posedge clk); 
                 if (!s_tready) begin 

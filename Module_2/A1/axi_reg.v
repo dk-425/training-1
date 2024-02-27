@@ -16,7 +16,7 @@ module axi_reg #(parameter DW = 8)(
     input                       m_tready
   );
 
-  reg  m_tvalid_i,m_tlast_i;
+  reg  m_tvalid_i,m_tlast_i,s_tready_i;
   reg [DW-1:0] m_tdata_i='d0;
 
   always @(posedge clk)
@@ -34,16 +34,24 @@ module axi_reg #(parameter DW = 8)(
     end
     else
     begin
-      m_tlast_i <= 0;
       m_tvalid_i<=0;
     end
 
+  end
+  always @(posedge clk) begin
+      if (rst)
+    begin
+      s_tready_i<=0;
+    end
+    else begin
+    s_tready_i<=m_tready;
+    end
   end
 
   assign m_tvalid = m_tvalid_i;
   assign m_tdata = m_tdata_i;
   assign m_tlast = m_tlast_i;
-  assign s_tready = rst ? 0 : m_tready;
+  assign s_tready = s_tready_i;
 
 endmodule
 

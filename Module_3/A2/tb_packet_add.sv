@@ -3,29 +3,33 @@
 module axis_fifo_tb;
 
   // Parameters
-  localparam  DW = 16;
-  localparam  DD = 2048;
-  localparam AW = 12;
+  localparam  DW = 8;
+  localparam  DD = 512;
+  localparam AW = 10;
 
   //Ports
   logic  clk;
   logic  rst;
   logic [DW-1   :0] s_tdata='d0,s_tdata_i;
   logic  s_tvalid=0;
-  logic  s_tlast=0;//,s_tlast_i;
+  logic  s_tlast=0,s_tlast_i;
   logic  s_tready;
   logic [DW-1   :0] m_tdata;
   logic  m_tvalid;
   logic  m_tlast;
   logic  m_tready=0;
-  logic full,empty;
+//  logic full,empty;
 
-  axis_fifo # (
+  logic [DW-1:0] len=64;
+  logic [DW-1:0] k=2;
+  logic [DW+DW-1:0] config_packet={k,len};
+
+  packet_add_top # (
               .DW(DW),
               .DD(DD),
               .AW(AW)
             )
-            axis_fifo_inst (
+            packet_add_dut1 (
               .clk(clk),
               .rst(rst),
               .s_tdata(s_tdata),
@@ -35,52 +39,41 @@ module axis_fifo_tb;
               .m_tdata(m_tdata),
               .m_tvalid(m_tvalid),
               .m_tlast(m_tlast),
-              .m_tready(m_tready)
+              .m_tready(m_tready),
+              .config_packet(config_packet)
             );
-
-
+ 
   always #5  clk = ! clk ;
 
   initial
   begin
     clk=1;
     rst=1;
+    #10
     reset;
-    #20
-     fork
-       begin
 
-         axis_write(2049);
-       end
-       //    begin
-       //    axis_read;
-       //    end
-     join
+    axis_write(257);
+    #10
+    m_tready=1;
+    #10
+    axis_read;
+     m_tready=0;
+$stop();
 
-     #10 
-     axis_read;
-
-     $stop();
+     
 
   end
-   initial begin
-     #3000
-     m_tready=1;
-     #40480
-      m_tready=0;
-     end 
 
   integer file,file2,file3;
 
-task automatic reset;
-    begin
-    repeat (3) @(posedge clk);
+  task automatic reset;
+   repeat (3) @(posedge clk) begin
       rst = ~rst;
     end
   endtask
 
-  task automatic axis_write(input [12:0] n);
-    file = $fopen("map_out.csv", "r");
+  task automatic axis_write(input [AW:0] n);
+    file = $fopen("input_dat.csv", "r");
     repeat (n)
     begin
       if (file == 0)
@@ -91,18 +84,18 @@ task automatic reset;
       begin
         @(posedge clk);
         $fscanf(file,"%d,%b",s_tdata,s_tlast);
+        
         s_tvalid<=1;
-        $display("%d,%b\n",s_tdata,s_tlast);
+      //  $display("%d,%b",s_tdata,s_tlast);
       end
-      //$display("%d\n",s_tdata);
     end
     s_tvalid<=0;
     $fclose(file);
   endtask
 
   task automatic axis_read;
-  file3 = $fopen("zc_fd_in.csv", "r");
-  file2 = $fopen("output_tb.csv", "w");
+  file3 = $fopen("out_ref.csv", "r");
+  file2 = $fopen("output.csv", "w");
    begin
           if (file3 == 0) begin
               $stop("Error in Opening file !!");
