@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-Uses 8 LUT and 10 FF
+//Uses 8 LUT and 10 FF
 module mux_2_1 #(parameter DW = 8)(
 
     input   logic               clk,
