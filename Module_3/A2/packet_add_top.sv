@@ -19,10 +19,10 @@ module packet_add_top #(
      
     );
     
-    logic [DW-1   :0]   m_tdata1,m_tdata2,m_tdata_reg;
+    logic [DW-1   :0]   m_tdata1,m_tdata2;
     logic m_tvalid_1,m_tlast_1,s_tready_1;
     logic m_tvalid_2,m_tlast_2,s_tready_2;
-    logic m_tvalid_reg,m_tlast_reg,s_tready_reg;
+   
     logic empty1,empty2,full1,full2;
     
     
@@ -80,8 +80,8 @@ axis_fifo # (
   );
 
     assign m_tdata = m_tdata1+m_tdata2;
-    assign m_tvalid = m_tvalid1&m_tvalid2;
+    assign m_tvalid = m_tvalid1&&m_tvalid2;
     assign m_tlast = m_tlast1;
-    assign s_tready = s_tready1&s_tready2;
+    assign s_tready = s_tready1&&s_tready2;
     
 endmodule

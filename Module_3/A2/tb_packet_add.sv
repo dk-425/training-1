@@ -4,12 +4,12 @@ module axis_fifo_tb;
 
   // Parameters
   localparam  DW = 8;
-  localparam  DD = 512;
+  localparam  DD = 64;
   localparam AW = 10;
 
   //Ports
-  logic  clk;
-  logic  rst;
+  logic  clk=1;
+  logic  rst=1;
   logic [DW-1   :0] s_tdata='d0,s_tdata_i;
   logic  s_tvalid=0;
   logic  s_tlast=0,s_tlast_i;
@@ -24,10 +24,9 @@ module axis_fifo_tb;
   logic [DW-1:0] k=2;
   logic [DW+DW-1:0] config_packet={k,len};
 
-  packet_add_top # (
+  packet_add # (
               .DW(DW),
-              .DD(DD),
-              .AW(AW)
+              .DD(DD)
             )
             packet_add_dut1 (
               .clk(clk),
@@ -47,27 +46,32 @@ module axis_fifo_tb;
 
   initial
   begin
-    clk=1;
-    rst=1;
-    #10
+  fork 
+  begin
     reset;
 
     axis_write(257);
-    #10
-    m_tready=1;
-    #10
-    axis_read;
-     m_tready=0;
-$stop();
-
+    #10;
+    
+     end
+     begin
+   //  #750
      
+     #10
+     axis_read(257);
+    // m_tready=0;
+      $stop();
+     end
+     join
+
 
   end
-
+ reg [10:0] counter;
   integer file,file2,file3;
 
   task automatic reset;
-   repeat (3) @(posedge clk) begin
+  begin
+   repeat (3) @(posedge clk);
       rst = ~rst;
     end
   endtask
@@ -93,10 +97,11 @@ $stop();
     $fclose(file);
   endtask
 
-  task automatic axis_read;
+  task automatic axis_read(input [AW:0] n);
   file3 = $fopen("out_ref.csv", "r");
   file2 = $fopen("output.csv", "w");
-   begin
+
+    begin
           if (file3 == 0) begin
               $stop("Error in Opening file !!");
           end
@@ -104,14 +109,24 @@ $stop();
             $stop("Error in Opening file !!");
         end
           else begin
+          m_tready=1;
+          wait(m_tvalid);
           while (m_tvalid) begin
+          counter=0;
           @(posedge clk);
+          counter<=counter+1;
           $fscanf(file3,"%d",s_tdata_i);
           if (m_tdata==s_tdata_i)
           $fdisplay(file2,"pass, %d",m_tdata);
           else $fdisplay(file2,"fail, %d",m_tdata);
+          if (counter==n-2) begin
+           m_tready=0;
+           counter=0;
+           end
           end
+          
           end
+       
           
     end
 
