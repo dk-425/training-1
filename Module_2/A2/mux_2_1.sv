@@ -44,9 +44,9 @@ module mux_2_1 #(parameter DW = 8)(
         end
         else
         begin
-          m_tvalid<=0;
+          m_tvalid<=m_tvalid;
           m_tdata <= m_tdata;
-          m_tlast <=0;
+          m_tlast <=m_tlast;
         end
 
       end
@@ -60,9 +60,9 @@ module mux_2_1 #(parameter DW = 8)(
         end
         else
         begin
-          m_tvalid <= 0;
+          m_tvalid <= m_tvalid;
           m_tdata <= m_tdata;
-          m_tlast <=0;
+          m_tlast <=m_tlast;
         end
       end
     end
