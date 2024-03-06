@@ -18,59 +18,60 @@ module axis_fifo_tb;
   logic  m_tvalid;
   logic  m_tlast;
   logic  m_tready=0;
+//  logic full,empty;
 
   logic [DW-1:0] len=64;
-  logic [DW-1:0] k=2;
+  logic [DW-1:0] k=3;
   logic [DW+DW-1:0] config_packet={k,len};
 
   packet_add # (
-               .DW(DW),
-               .DD(DD)
-             )
-             packet_add_dut1 (
-               .clk(clk),
-               .rst(rst),
-               .s_tdata(s_tdata),
-               .s_tvalid(s_tvalid),
-               .s_tlast(s_tlast),
-               .s_tready(s_tready),
-               .m_tdata(m_tdata),
-               .m_tvalid(m_tvalid),
-               .m_tlast(m_tlast),
-               .m_tready(m_tready),
-               .config_packet(config_packet)
-             );
-
+              .DW(DW),
+              .DD(DD)
+            )
+            packet_add_dut1 (
+              .clk(clk),
+              .rst(rst),
+              .s_tdata(s_tdata),
+              .s_tvalid(s_tvalid),
+              .s_tlast(s_tlast),
+              .s_tready(s_tready),
+              .m_tdata(m_tdata),
+              .m_tvalid(m_tvalid),
+              .m_tlast(m_tlast),
+              .m_tready(m_tready),
+              .config_packet(config_packet)
+            );
+ 
   always #5  clk = ! clk ;
 
   initial
   begin
-    fork
-      begin
-        reset;
+  fork 
+  begin
+    reset;
 
-        axis_write(257);
-        #10;
-
-      end
-      begin
-        //  #750
-        m_tready=1;
-        #10
-         axis_read;
-        // m_tready=0;
-        $stop();
-      end
-    join
+    axis_write(257);
+    #10;
+    
+     end
+     begin
+   //  #750
+     
+     #10
+     axis_read(257);
+    // m_tready=0;
+      $stop();
+     end
+     join
 
 
   end
-
+ reg [10:0] counter;
   integer file,file2,file3;
 
   task automatic reset;
-    begin
-      repeat (3) @(posedge clk);
+  begin
+   repeat (3) @(negedge clk);
       rst = ~rst;
     end
   endtask
@@ -85,50 +86,52 @@ module axis_fifo_tb;
       end
       else
       begin
-        @(posedge clk);
+        @(negedge clk);
         $fscanf(file,"%d,%b",s_tdata,s_tlast);
-
+        
         s_tvalid<=1;
-        //  $display("%d,%b",s_tdata,s_tlast);
+      //  $display("%d,%b",s_tdata,s_tlast);
       end
     end
     s_tvalid<=0;
     $fclose(file);
   endtask
 
-  task automatic axis_read;
-    file3 = $fopen("out_ref.csv", "r");
-    file2 = $fopen("output.csv", "w");
+  task automatic axis_read(input [AW:0] n);
+  file3 = $fopen("out_ref.csv", "r");
+  file2 = $fopen("output.csv", "w");
+
     begin
-      if (file3 == 0)
-      begin
-        $stop("Error in Opening file !!");
-      end
-      else if (file2 == 0)
-      begin
-        $stop("Error in Opening file !!");
-      end
-      else
-      begin
-
-
-        while (m_tvalid)
-        begin
-          @(posedge clk);
+          if (file3 == 0) begin
+              $stop("Error in Opening file !!");
+          end
+          else if (file2 == 0) begin
+            $stop("Error in Opening file !!");
+        end
+          else begin
+          m_tready=1;
+          wait(m_tvalid);
+          while (m_tvalid) begin
+          counter=0;
+          @(negedge clk);
+          counter<=counter+1;
           $fscanf(file3,"%d",s_tdata_i);
           if (m_tdata==s_tdata_i)
-            $fdisplay(file2,"pass, %d",m_tdata);
-          else
-            $fdisplay(file2,"fail, %d",m_tdata);
-        end
-
-      end
-
-
+          $fdisplay(file2,"pass, %d",m_tdata);
+          else $fdisplay(file2,"fail, %d",m_tdata);
+          if (counter==n-2) begin
+           m_tready=0;
+           counter=0;
+           end
+          end
+          
+          end
+       
+          
     end
 
-    $fclose(file3);
-    $fclose(file2);
+  $fclose(file3);
+  $fclose(file2);
   endtask
 
 endmodule

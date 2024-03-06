@@ -1,4 +1,4 @@
-
+//7 lut,1 reg,1 dsp
 
 `timescale 1ns / 1ps
 //using clk and reset
@@ -14,8 +14,8 @@ module dsp #(
       input    logic signed [DW-1   :0]   b,
       input    logic signed [DW-1   :0]   c,
       input    logic signed [DW-1   :0]   d,
-      input                             sel,
-      output   logic signed [DW-1   :0]  m_tdata,
+      output   logic                     sel,
+      output   logic signed [DW+DW   :0]  m_tdata,
       output overflow
 
       
@@ -41,13 +41,14 @@ module dsp #(
     temp1<= a+d;
     temp4<= temp1*b;
     opm<=sel;
-    temp13<=temp4+c;
+    if (temp4==c) sel<=1;
+    else sel<=0;
    // temp11<=temp4-c;
     //temp12<=sel?temp13:temp11;
   
     end
     end
-  assign m_tdata=temp13[DW:1];
-  assign overflow=temp13[0];
+  assign m_tdata=temp4[DW+DW-1:0];
+  assign overflow=temp4[DW+DW];
 
 endmodule

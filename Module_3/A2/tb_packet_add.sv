@@ -21,7 +21,7 @@ module axis_fifo_tb;
 //  logic full,empty;
 
   logic [DW-1:0] len=64;
-  logic [DW-1:0] k=2;
+  logic [DW-1:0] k=3;
   logic [DW+DW-1:0] config_packet={k,len};
 
   packet_add # (
@@ -71,7 +71,7 @@ module axis_fifo_tb;
 
   task automatic reset;
   begin
-   repeat (3) @(posedge clk);
+   repeat (3) @(negedge clk);
       rst = ~rst;
     end
   endtask
@@ -86,7 +86,7 @@ module axis_fifo_tb;
       end
       else
       begin
-        @(posedge clk);
+        @(negedge clk);
         $fscanf(file,"%d,%b",s_tdata,s_tlast);
         
         s_tvalid<=1;
@@ -113,7 +113,7 @@ module axis_fifo_tb;
           wait(m_tvalid);
           while (m_tvalid) begin
           counter=0;
-          @(posedge clk);
+          @(negedge clk);
           counter<=counter+1;
           $fscanf(file3,"%d",s_tdata_i);
           if (m_tdata==s_tdata_i)

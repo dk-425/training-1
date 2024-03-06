@@ -39,14 +39,12 @@ module mux_2_1 #(parameter DW = 8)(
         if (s1_tvalid && s1_tready)
         begin
           m_tdata <= s1_tdata;
-          m_tvalid <= s1_tvalid;
+          m_tvalid <= 1;
           m_tlast <= s1_tlast;
         end
         else
         begin
-          m_tvalid<=m_tvalid;
-          m_tdata <= m_tdata;
-          m_tlast <=m_tlast;
+          m_tvalid<=0;
         end
 
       end
@@ -55,14 +53,13 @@ module mux_2_1 #(parameter DW = 8)(
         if (s2_tvalid && s2_tready)
         begin
           m_tdata <= s2_tdata;
-          m_tvalid <= s2_tvalid;
+          m_tvalid <= 1;
           m_tlast <= s2_tlast;
         end
         else
         begin
-          m_tvalid <= m_tvalid;
-          m_tdata <= m_tdata;
-          m_tlast <=m_tlast;
+          m_tvalid <= 0;
+
         end
       end
     end

@@ -25,6 +25,7 @@ module axi_reg #(parameter DW = 8)(
     begin
       m_tvalid_i<=0;
       m_tlast_i <=0;
+      m_tdata_i <=0;
     end
     else if (s_tvalid && s_tready)
     begin
