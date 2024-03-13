@@ -21,15 +21,15 @@ localparam ideal_i=i1+i2;
 localparam ideal_f=f1+f2;
 localparam ideal_width=ideal_i+ideal_f;
 //localparam shift=ideal_f-f3;
-localparam total_ofbits=ideal_i-i3;
+localparam total_ofbits=ideal_i-i3+1;
 localparam total_ufbits=ideal_f-f3;
 reg [i3+f3-1 :0] c_ref;
-reg [ideal_width-1 :0] ideal,ta,tb;    //3.14
+reg [ideal_width-1 :0] ideal,ta,tb;    //4.28
 
-//reg overflow_may = ideal_i>i3;
-//reg underflow_may = ideal_f>f3;
+reg overflow_may = ideal_i>i3;
+reg underflow_may = ideal_f>f3;
 
-assign sign = s1 ^ s2;
+assign sign = s1 || s2;
 
 always_comb begin
     if (sign) begin
@@ -39,29 +39,19 @@ always_comb begin
         else tb = b;
         ideal=$signed(ta) * $signed(tb);
         
-        overflow =ideal[ideal_width - 1]? (~&ideal[ideal_width - 1 -: total_ofbits] == ideal[ideal_width - 1]):|ideal[ideal_width - 1:ideal_width -ideal_i+i3-1];
-            
-        
-        c_ref={overflow?{{{i3+f3}{1'b1}}}:$signed(ideal[ideal_width-1-i3:ideal_f-f3])};
-    end
+        overflow = overflow_may?ideal[ideal_width - 1]? (~&ideal[ideal_width - 1 -: total_ofbits] == ideal[ideal_width - 1]):|ideal[ideal_width - 1:ideal_width -ideal_i+i3-1]:0;
+        underflow = underflow_may?|$signed(ideal[ideal_width-ideal_i-1+i3:ideal_f-f3])?0:|$signed(ideal[ideal_f-f3-1:0]):0;
+
+         c_ref=overflow?ideal[ideal_width - 1]?{{i3+f3}{1'b0}}:{{i3+f3}{1'b1}}:$signed(ideal[ideal_width-ideal_i-1+i3:ideal_f-f3]);
+         end
     else begin
-        if (s1 && s2) begin
-            ideal= $signed(a) * $signed(b);
-          //  overflow = |ideal[ideal_width - 1:ideal_width -ideal_i+i3-1];
-            //c_ref={overflow?{{{i3+f3}{1'b1}}}:$signed(ideal[ideal_width-1-i3:ideal_f-f3])};
-            overflow =ideal[ideal_width - 1]? (~&ideal[ideal_width - 1 -: total_ofbits] == ideal[ideal_width - 1]):|ideal[ideal_width - 1:ideal_width -ideal_i+i3-1];
-            c_ref={overflow?{{{i3+f3}{1'b1}}}:$signed(ideal[ideal_width-1-i3:ideal_f-f3])};
-        end
-        else begin
+    
         ideal=a*b;
-       
-         if(i3+f3>=ideal_width)
-            overflow=0;
-            else
-         overflow = |ideal[ideal_width - 1:ideal_width -ideal_i+i3-1];
-         c_ref={overflow?{{{i3+f3}{1'b1}}}:ideal[ideal_width-1-i3:ideal_f-f3]};
-            end
-    end
+         overflow=overflow_may?ideal[ideal_width-1]:0;
+            underflow = underflow_may?|ideal[ideal_width-ideal_i-1+i3:ideal_f-f3]?0:|ideal[ideal_f-f3-1:0]:0;
+        c_ref=overflow?{{i3+f3}{1'b1}}:ideal[ideal_width-ideal_i+i3-1:ideal_f-f3];
+       end
+
 
 
 end

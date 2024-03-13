@@ -4,12 +4,10 @@ module fp_add_tb;
   // Parameters
   localparam  i1 = 2;
   localparam  f1 = 14;
- // localparam  s1 = 0;
   localparam  i2 = 2;
   localparam  f2 = 14;
- // localparam  s2 = 0;
   localparam  i3 = 2;
-  localparam  f3 = 14;
+  localparam  f3 = 8;
 
   //Ports
   reg [i1+f1-1 :0] a;
@@ -20,6 +18,7 @@ module fp_add_tb;
   wire  overflow;
   wire  underflow;
   wire sign;
+  
   fp_add # (
     .i1(i1),
     .f1(f1),
@@ -42,7 +41,7 @@ module fp_add_tb;
   );
 
 //always #5  clk = ! clk ;
-reg sres;
+
 integer file;
 real rand_num, ref_A, ref_B, ref_C_add, error_add, error_add_abs;
 real ref_a,ref_b,ref_c;
@@ -84,7 +83,6 @@ file = $fopen("out_fp.csv", "w");
         else ref_c = c;
         
         error_add = ref_C_add - real'(ref_c/2.0**f3);
-    
         
 
         if(error_add < 0) begin
@@ -96,13 +94,14 @@ file = $fopen("out_fp.csv", "w");
       //  $fdisplay(file,"a_ref = %f, b_ref = %f, c_ref = %f, a = %f, b = %f, c = %f", ref_A, ref_B, ref_C_add, (real'(ref_a)/2**14), real'(ref_b/2**14), real'(ref_c/2**14));
            
         if(error_add_abs > 1e-3) begin
-            if (overflow) $fdisplay(file,"-----overflow has occured!-----");
-        else begin
-             $fdisplay(file,"~~~~~output mismatch~~~~~. error = %f", error_add_abs);          
+            if (overflow) $fdisplay(file,"op err-----overflow has occured!-----");
+            else if (underflow) $fdisplay(file,"op err+++++underflow has occured!+++++");
+            else $fdisplay(file,"~~~~~output mismatch~~~~~. error = %f", error_add_abs);          
         end
-        end
+        
         else begin
         if (overflow) $fdisplay(file,"-----overflow has occured!-----");
+        else if (underflow) $fdisplay(file,"+++++underflow has occured!+++++");
         else $fdisplay(file,"success. precision=%f",error_add);
         end
       end  
@@ -120,7 +119,6 @@ function automatic real rand_float (input real min, max);
 endfunction
 
 function real fp_range_min (input integer i, f);
-    /* -2.0 ** (i-1) will not work as (-2) ^ 0 = 1 */
     fp_range_min = -1 * (2.0**(i-1));
 endfunction
 
